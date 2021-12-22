@@ -14,17 +14,15 @@ async function getAllFruits() {
   const fruitsArray = [];
   const querySnapshot = await fruitsRef.get();
   querySnapshot.forEach((doc) => {
-    fruitsArray.push(
-      {
-        id: doc.id,
-        name: doc.data().name,
-        onSale: doc.data().onSale,
-        price: doc.data().price,
-      },
-    );
+    fruitsArray.push({
+      id: doc.id,
+      ...doc.data(),
+    });
   });
-  console.log(fruitsArray);
+
+  return fruitsArray;
 }
+
 function addFruit() {
   const db = firebase.firestore();
   const fruitsRef = db.collection('fruit');

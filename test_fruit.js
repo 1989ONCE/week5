@@ -7,14 +7,13 @@ async function getAllFruits() {
   const fruitsArray = [];
   const querySnapshot = await fruitsRef.get();
   querySnapshot.forEach((doc) => {
-    fruitsArray.push(
-      {
-        id: doc.id,
-        ...doc.data(),
-      },
-    );
+    fruitsArray.push({
+      id: doc.id,
+      ...doc.data(),
+    });
   });
-  console.log(fruitsArray);
+
+  return fruitsArray;
 }
 
 async function deleteNotApple() {
@@ -26,7 +25,14 @@ async function deleteNotApple() {
   });
 }
 
+function addFruit(insert) {
+  const db = firebase.firestore();
+  const fruitsRef = db.collection('fruit');
+  fruitsRef.add(insert);
+}
+
 export default {
   getAllFruits,
   deleteNotApple,
+  addFruit,
 };
