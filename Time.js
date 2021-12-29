@@ -12,18 +12,31 @@ function toDateString(time) {
   return dateString;
 }
 
+function ArrayEmpty() {
+  const Array = [];
+  Array.push({
+    id: 'none',
+    time: 'Time queue is empty',
+  });
+  return Array;
+}
+
 async function getLatestTime() {
   const db = firebase.firestore();
   const lastRef = db.collection('AllTime').orderBy('time', 'asc').limitToLast(1);
   const snapshot = await lastRef.get();
-  if (snapshot.empty) {
-    console.log('Time queue is empty.');
-    return;
-  }
 
+  if (snapshot.empty) {
+    return ArrayEmpty();
+  }
+  const Array = [];
   snapshot.forEach((doc) => {
-    console.log(doc.id, '=> time:', toDateString(doc.data().time));
+    Array.push({
+      id: doc.id,
+      time: toDateString(doc.data().time),
+    });
   });
+  return Array;
 }
 
 async function getAllTimes() {
@@ -32,12 +45,16 @@ async function getAllTimes() {
 
   const querySnapshot = await TimeRef.get();
   if (querySnapshot.empty) {
-    console.log('Time queue is empty.');
-    return;
+    return ArrayEmpty();
   }
+  const TimesArray = [];
   querySnapshot.forEach((doc) => {
-    console.log(doc.id, '=> time:', toDateString(doc.data().time));
+    TimesArray.push({
+      id: doc.id,
+      time: toDateString(doc.data().time),
+    });
   });
+  return TimesArray;
 }
 
 function addCurrentTime() {
@@ -54,12 +71,12 @@ async function deleteEarliestTime() {
   const EarlyRef = db.collection('AllTime').orderBy('time', 'desc').limitToLast(1);
   const snapshot = await EarlyRef.get();
   if (snapshot.empty) {
-    console.log('Time queue is empty.');
-    return;
+    return ArrayEmpty();
   }
   snapshot.forEach((doc) => {
     db.collection('AllTime').doc(doc.id).delete();
   });
+  return [];
 }
 
 export default {

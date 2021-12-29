@@ -1,22 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import {
-  ScrollView, RefreshControl, Text, Button, View,
+  StyleSheet, TouchableOpacity, ScrollView, Text, Button, RefreshControl,
 } from 'react-native';
 import {
-  Card, Title, TextInput,
+  Card, Title,
 } from 'react-native-paper';
-// Import Firebase
 import firebase from 'firebase';
-import FruitController from './test_fruit';
+import TimeController from './Time';
 
-/* const styles = StyleSheet.create({
-  container: {
+const styles = StyleSheet.create({
+  /* container: {
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+  }, */
+  button: {
+    margin: 20,
+    padding: 10,
+    paddingLeft: 20,
+    paddingRight: 20,
+    backgroundColor: '#406E9F',
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-}); */
+  buttonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+});
 
 const firebaseConfig = {
   apiKey: 'AIzaSyAE1BMN-NymGGpNppqzqeOkQTfVZyrBXzo',
@@ -29,36 +43,32 @@ const firebaseConfig = {
 };
 
 export default function App() {
-  const [item, setItems] = useState([]);
-  useEffect(() => {
-    FruitController.getAllFruits().then((res) => {
-      setItems(res);
-    }).catch((err) => {
-      throw err;
-    });
-  }, []);
+  const [latestTime, setLatestTime] = useState([]);
+  const [all, setAll] = useState([]);
 
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = () => {
     setRefreshing(true);
-    FruitController.getAllFruits().then((res) => {
-      setItems(res);
+    TimeController.getAllTimes().then((res) => {
+      setAll(res);
       setRefreshing(false);
     });
   };
 
-  const [Newname, setName] = useState(['NEWfruit']);
-  const [Newprice, setPrice] = useState(0);
-  const [onsale, setOnsale] = useState(true);
+  useEffect(() => {
+    TimeController.getLatestTime().then((res) => {
+      setLatestTime(res);
+    }).catch((err) => {
+      throw err;
+    });
+  }, []);
 
   if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
   } else {
     firebase.app();
   }
-
   return (
-
     <ScrollView
       refreshControl={(
         <RefreshControl
@@ -67,67 +77,65 @@ export default function App() {
         />
       )}
     >
-      { item.map(({
-        id, name, price, onSale,
+      <Text>{'\n\n  All Time'}</Text>
+      { all.map(({
+        id, time,
       }) => (
         <Card
           key={id}
           style={{ flex: 1, padding: 10, margin: 4 }}
         >
           <Card.Content>
-            <Title>{name}</Title>
-            <Text>{`價錢:${price}`}</Text>
-            <Text>{`優惠:${onSale}`}</Text>
+            <Title>{id}</Title>
+            <Text>{time}</Text>
           </Card.Content>
         </Card>
       ))}
-
-      <View>
-        <TextInput
-          label="Fruit Name"
-          onChangeText={setName}
-          placeholder="Name of the fruit"
-          value={Newname}
-        />
-        <Button
-          onPress={() => { setOnsale(!onsale); }}
-          value={onsale}
-          title="default is true, press to set it false"
-          color="#007FFF"
-        />
-        <TextInput
-          label="Fruit Price"
-          onChangeText={setPrice}
-          value={Newprice}
-          placeholder="how much is it?"
-          keyboardType="numeric"
-        />
-
-      </View>
+      <Text>{'\n   Latest Time'}</Text>
+      { latestTime.map(({
+        id, time,
+      }) => (
+        <Card
+          key={id}
+          style={{ flex: 1, padding: 10, margin: 4 }}
+        >
+          <Card.Content>
+            <Title>{id}</Title>
+            <Text>{time}</Text>
+          </Card.Content>
+        </Card>
+      ))}
+      <Text>{'\n'}</Text>
       <Button
         onPress={() => {
-          const insert = {
-            name: Newname,
-            onSale: onsale,
-            price: +Newprice,
-          };
-          FruitController.addFruit(insert);
-          setName([]);
-          setPrice(null);
-          setOnsale(true);
-          onRefresh();
+          TimeController.getLatestTime().then(() => { onRefresh(); });
         }}
-        title="add fruit"
-        color="#007FFF"
-      />
-      {}
-      <Button
+        title="get lastest time(可有可無)"
+        color="#FFBF00"
+      >
+        <Text>{'\n'}</Text>
+      </Button>
+
+      <TouchableOpacity
+        style={styles.button}
         onPress={() => {
-          FruitController.deleteNotApple().then(() => { onRefresh(); });
+          TimeController.addCurrentTime().then(() => { onRefresh(); });
         }}
-        title="delete not apple"
-        color="#007FFF"
-      />
+      >
+        <Text style={styles.buttonText}> add current time </Text>
+
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => {
+          TimeController.deleteEarliestTime().then(() => { onRefresh(); });
+        }}
+      >
+
+        <Text style={styles.buttonText}>delete earliest Time </Text>
+
+      </TouchableOpacity>
     </ScrollView>
   );
 }
